@@ -172,9 +172,16 @@ interface IBuyer {
 `phone: string`                // номер телефона
 
 Методы класса:
-`validate(): boolean` — проверка корректности введённых данных. Возвращает true, если данные корректны, и false в противном случае
+`validateFields(): Record<keyof IBuyer, boolean>` — проверка корректности каждого поля отдельно.Возвращает объект вида `{ payment: true|false, address: true|false, email: true|false, phone: true|false }`. Используется для отображения ошибок в форме.
+
+`validate(): boolean` — проверка корректности всех данных целиком. Возвращает `true`, если все поля валидны, и `false`, если хотя бы одно невалидно
+
 `getData(): IBuyer` — получить текущие данные покупателя в виде объекта типа IBuyer
+
 `saveData(newData: IBuyer): void` — принимает объект newData типа IBuyer и сохраняет его значения в соответствующих полях класса
+
+`updateField<K extends keyof IBuyer>(field: K, value: IBuyer[K]): void`- обновляет одно конкретное поле покупателя
+
 `clear(): void` - очищает данные покупателя (сбрасывает все поля в пустые значения)
 
 ### «Слой коммуникации»
@@ -186,6 +193,6 @@ interface IBuyer {
 Принимает объект, реализующий интерфейс IApi 
 
 Методы класса:
-`getProducts(): Promise<IProduct[]>` Выполняет GET запрос к эндпоинту /product/. Возвращает массив товаров (IProduct[])
+`getProducts(): Promise<IProductListResponse>` Выполняет GET запрос к эндпоинту /product/. Возвращает объект с общим количеством товаров и массивом товаров
 `createOrder(order: IOrder): Promise<IOrderResponse>` Выполняет POST запрос к эндпоинту /order/. Отправляет объект заказа (IOrder) и получает от сервера ответ (IOrderResponse)
 

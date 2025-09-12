@@ -3,6 +3,9 @@
 // Тип для способа оплаты, выбираемый пользователем
 export type TPayment = 'card' | 'cash' | ''; // '' — ещё не выбран
 
+// Тип для валидации
+export type ValidationMap = Record<keyof IBuyer, boolean>;
+
 // Интерфейс для товара
 export interface IProduct {
     id: string;           // уникальный идентификатор товара

@@ -1,8 +1,8 @@
 import './scss/styles.scss';
 
-import { Catalog } from './components/base/Models/Catalog';
-import { Cart } from './components/base/Models/Cart';
-import { BuyerData } from './components/base/Models/BuyerData';
+import { Catalog } from './components/Models/Catalog';
+import { Cart } from './components/Models/Cart';
+import { BuyerData } from './components/Models/BuyerData';
 import { apiProducts } from './utils/data';
 import { Api } from './components/base/Api';
 import { ShopAPI } from './components/base/ShopAPI';
@@ -61,7 +61,24 @@ const buyer = new BuyerData({
 console.log('Данные покупателя:', buyer.getData());
 
 // Валидируем данные
+console.log('Валидация данных покупателя (поля):', buyer.validateFields());
 console.log('Валидация данных покупателя:', buyer.validate());
+
+// Полная замена данных покупателя
+buyer.saveData({
+  payment: 'card',
+  address: 'ул. Лермонтова, д. 5',
+  email: 'save@example.com',
+  phone: '+79990001122',
+});
+console.log('После полной замены данных (saveData):', buyer.getData());
+
+// Обновление данных покупателя по одному полю
+buyer.updateField('email', 'newmail@example.com');
+console.log('После изменения email:', buyer.getData());
+
+buyer.updateField('payment', 'cash');
+console.log('После изменения payment:', buyer.getData());
 
 // Очищаем данные покупателя
 buyer.clear();
@@ -74,19 +91,32 @@ const api = new Api(import.meta.env.VITE_API_ORIGIN, {
   }
 });
 
-// создаём экземпляр ShopAPI
+// Проверка ShopAPI
 const shopApi = new ShopAPI(api);
 
-// получаем товары с сервера
+// Получаем список товаров
 shopApi.getProducts()
   .then((response) => {
-    // сохраняем товары в модель
-    catalog.saveProducts(response.items);
+    console.log('Количество товаров в магазине:', response.total);
+    console.log('Товары:', response.items);
 
-    // выводим в консоль
-    console.log('Каталог товаров из API:', catalog.getProducts());
+    // Пробуем создать заказ на основе товаров
+    const order = {
+      payment: 'card' as const,
+      email: 'order@example.com',
+      phone: '+79998887766',
+      address: 'ул. Чехова, д. 12',
+      total: response.items[0].price ?? 0,
+      items: [response.items[0].id],
+    };
+
+    return shopApi.createOrder(order);
+  })
+  .then((orderResponse) => {
+    console.log('Ответ от сервера при создании заказа:', orderResponse);
   })
   .catch((error) => {
-    console.error('Ошибка при получении товаров:', error);
+    console.error('Ошибка работы с ShopAPI:', error);
   });
+
 
