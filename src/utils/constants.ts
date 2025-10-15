@@ -6,7 +6,15 @@ export const API_URL = `${import.meta.env.VITE_API_ORIGIN}/api/weblarek`;
 которое хранится в объекте товара. */
 export const CDN_URL = `${import.meta.env.VITE_API_ORIGIN}/content/weblarek`;
 
-export const settings = {
-
+// Модификаторы фона категорий карточек
+export const categoryMap: Record<string, { title: string; mod: string }> = {
+  'софт-скил':{title: 'софт-скил', mod: 'soft'},
+  'другое':{title: 'другое', mod: 'other'},
+  'хард-скил':{title: 'хард-скил', mod: 'hard'},
+  'дополнительное':{title: 'дополнительное', mod: 'additional'}, 
+  'кнопка':{title: 'кнопка', mod: 'button'},      
+  // fallback будет применён в CardBase, если ключ не найден
 };
+
+export const MODAL_ACTIVE_CLASS = 'modal_active';
 

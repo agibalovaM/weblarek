@@ -106,9 +106,7 @@ export function isBoolean(v: unknown): v is boolean {
 }
 
 /**
- * Фабрика DOM-элементов в простейшей реализации
- * здесь не учтено много факторов
- * в интернет можно найти более полные реализации
+ * Фабрика DOM-элементов
  */
 export function createElement<
     T extends HTMLElement

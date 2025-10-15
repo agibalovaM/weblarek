@@ -196,3 +196,218 @@ interface IBuyer {
 `getProducts(): Promise<IProductListResponse>` Выполняет GET запрос к эндпоинту /product/. Возвращает объект с общим количеством товаров и массивом товаров
 `createOrder(order: IOrder): Promise<IOrderResponse>` Выполняет POST запрос к эндпоинту /order/. Отправляет объект заказа (IOrder) и получает от сервера ответ (IOrderResponse)
 
+### «Слой Представления»
+
+#### Header (наследник класса Component)
+Этот класс полностью отвечает за работу хедера и отображение количества товаров в корзине
+
+Данные (HeaderData):
+counter: number — число товаров в корзине
+
+Поля класса:
+`basketButton: HTMLButtonElement` — кнопка корзины
+`counterElement: HTMLElement` — элемент-счётчик
+
+Методы класса:
+`set counter(value: number)` — обновляет число в счётчике
+`onBasketClick(handler: () => void)` — навешивает обработчик на basketButton
+
+#### Gallery (наследник класса Component)
+Этот класс управляет списком карточек товаров на главной странице
+
+Данные (GalleryData):
+catalog: HTMLElement[] — список карточек товаров
+
+Поля класса:
+`catalogElement: HTMLElement` — контейнер для каталога 
+
+Методы класса:
+`set catalog(items: HTMLElement[])` — принимает массив карточек и вставляет их в DOM
+
+#### Модальное окно Modal (самостоятельный класс, не наследуется)
+Контейнер для показа любого контента (карточка, корзина, формы, успех)
+
+Данные (ModalData):
+content: HTMLElement — узел, который нужно отобразить внутри модалки
+
+Поля класса:
+`modalElement: HTMLElement` — корневой элемент модального окна
+`containerElement: HTMLElement` — «коробка» с контентом (чтобы отличить клик по самому контейнеру)
+`contentElement: HTMLElement` — блок в который динамически вставляется контент модалки
+`closeButton: HTMLButtonElement` — хранит кнопку "крестик"
+
+Методы класса:
+`set content(value: HTMLElement)` — заменяет содержимое .modal__content
+`open()` — добавляет modal_active, настраивает aria и блокирует скролл
+`close()` — убирает modal_active, очищает контент и снимает блокировку скролла
+`bindCloseHandlers()` — крестик и клик вне контейнера
+
+#### Подтверждение Success (наследник класса Component) — template #success
+Окно успешного оформления заказа
+
+Данные (SuccessData):
+amount: number — списанная сумма
+
+Поля класса:
+`descriptionElement: HTMLElement` — хранит кол-во списанных синапсов
+`closeButton: HTMLButtonElement` — хранит кнопку
+
+Методы класса:
+`set amount(value: number)` — подставляет сумму в текст
+`onClose(handler: () => void)` — клик по closeButton
+
+#### CardBase (наследник класса Component) — родитель карточек
+Общий функционал для всех карточек
+
+Данные (CardBaseData):
+id: string
+title: string
+price: number | null
+category?: string
+image?: string
+
+Поля класса (общие селекторы, если есть):
+`titleElement?: HTMLElement` — заголовок
+`priceElement?: HTMLElement` — цена
+`categoryElement?: HTMLElement` — категория
+`imageElement?: HTMLImageElement` — картинка
+
+Методы класса:
+`set title(value: string)` — ставит заголовок
+`set price(value: number | null)` — цена либо «Бесценно»
+`set category(value?: string)` — текст и модификатор берутся из categoryMap (src/utils/constants.ts): title для текста, mod для класса card__category_* (с фолбэком на значение категории)
+`set image(value?: { src?: string; alt?: string })` — меняет изображение
+`onClick(handler: () => void)` — общий клик по карточке/кнопке-обёртке
+
+#### CatalogCard (наследник CardBase) — template #card-catalog
+Карточка в каталоге
+
+Доп. поля:
+`root: HTMLButtonElement` — кнопка
+
+Методы:
+наследует базовые
+
+#### PreviewCard (наследник CardBase) — template #card-preview
+Карточка в модальном окне (детальный просмотр)
+
+Доп. данные:
+description: string
+inCart: boolean
+
+Доп. поля:
+`textElement: HTMLElement` — описание
+`actionButton: HTMLButtonElement` — кнопка "купить"
+
+Доп. методы:
+`set description(value: string)`-добавляет описание
+`set inCart(value: boolean)` — «Купить» / «Удалить из корзины»
+`set available(value: boolean)` — включает или выключает доступность покупки:
+если value = false, делает кнопку неактивной (disabled = true) и меняет текст на «Недоступно»
+`onAction(handler: () => void)` — клик по кнопке действия
+
+#### BasketItem (наследник CardBase) — template #card-basket
+Карточка товара внутри корзины
+
+Доп. данные:
+index: number
+
+Доп. поля:
+`indexElement: HTMLElement` — номер товара в корзине
+`deleteButton: HTMLButtonElement` — кнопка "удалить"
+
+Доп. методы:
+`set index(value: number)`- устанавливает порядковый номер товара в корзине
+`onDelete(handler: () => void)`- навешивает обработчик удаления товара
+
+#### Basket (наследник класса Component) — template #basket
+Отображает список позиций в корзине, итоговую сумму и кнопку «Оформить»
+
+Данные (BasketData):
+items: HTMLElement[] — элементы BasketItem
+total: number — сумма
+empty: boolean — корзина пуста или нет
+
+Поля класса:
+`listElement: HTMLUListElement` — список в корзине 
+`totalElement: HTMLElement` — общая сумма
+`checkoutButton: HTMLButtonElement` — оформить
+
+Методы класса:
+`set items(value: HTMLElement[])` — вставляет список
+`set total(value: number)` — обновляет сумму
+`set empty(value: boolean)` — «Корзина пуста» + disabled для кнопки
+`onCheckout(handler: () => void)` — клик «Оформить»
+
+#### FormBase<T> (наследник класса Component) — родитель форм
+Общий функционал: ошибки, активация кнопки, сабмит
+
+Данные (FormBaseData):
+errors: string | null
+canSubmit: boolean
+
+Поля класса:
+`formElement: HTMLFormElement` — хранит HTML-элемент формы 
+`submitButton: HTMLButtonElement` — хранит кнопку отправки формы
+`errorsElement: HTMLElement` — хранит элемент, где отображается текст ошибки
+
+Методы класса:
+`set errors(value: string | null)` — показать/скрыть сообщение
+`set canSubmit(value: boolean)` — disabled на кнопке
+`onSubmit(handler: () => void)` — сабмит формы
+
+#### OrderForm (наследник FormBase) — template #order
+выбор оплаты и адрес
+
+Доп. данные:
+payment: 'card' | 'cash' | ''
+address: string
+
+Доп. поля:
+`cardButton: HTMLButtonElement` — хранит кнопку выбора способа оплаты «Онлайн»
+`cashButton: HTMLButtonElement` — хранит кнопку выбора способа оплаты «При получении»
+`addressInput: HTMLInputElement` — хранит поле ввода адреса доставки
+`nextButton: HTMLButtonElement` — хранит кнопку «Далее» для перехода ко второму шагу оформления
+
+Доп. методы:
+`set payment(value: 'card' | 'cash' | '')` — выделяет выбранную кнопку
+`set address(value: string)` — заполняет поле
+`onSelectPayment(handler: (v: 'card' | 'cash') => void)`- клик по способу оплаты
+`onInputAddress(handler: (v: string) => void)`- ввод адреса
+
+#### ContactsForm (наследник FormBase) — template #contacts
+ввод почты и телефона
+
+Доп. данные:
+email: string
+phone: string
+
+Доп. поля:
+`emailInput: HTMLInputElement` — хранит элемент поля ввода email
+`phoneInput: HTMLInputElement` — хранит элемент поля ввода телефона
+
+Доп. методы:
+`set email(value: string)`- вставляет переданное значение в поле ввода email
+`set phone(value: string)`- вставляет переданное значение в поле ввода телефона
+`onInputEmail(handler: (v: string) => void)`- навешивает обработчик на событие input поля email;
+при каждом изменении вызывает handler и передаёт новое значение
+`onInputPhone(handler: (v: string) => void)`- при вводе пользователем номера вызывает переданный обработчик с текущим значением
+
+#### События, генерируемые «Слой Представления»:
+`basket:open` — Header, клик по иконке корзины. (payload: нет)
+`card:select` — CatalogCard, клик по карточке в каталоге. (payload: { id: string })
+`modal:open / modal:close` — Modal, при открытии/закрытии. (payload: нет)
+`success:close` — Success, клик по кнопке «За новыми покупками!». (payload: нет)
+`order:start` — Basket, клик «Оформить». (payload: нет)
+`basket:item-remove` — BasketItem, клик по «удалить». (payload: { id: string })
+`card:add / card:remove` — PreviewCard, клик по кнопке действия. (payload: { id: string })
+`order:payment-select` — OrderForm, выбор 'card' | 'cash'. (payload: { payment: 'card' | 'cash' })
+`order:address-input` — OrderForm, ввод адреса. (payload: { address: string })
+`order:submit` — OrderForm, сабмит шага 1. (payload: нет)
+`contacts:email-input` — ContactsForm, ввод email. (payload: { email: string })
+`contacts:phone-input` — ContactsForm, ввод телефона. (payload: { phone: string })
+`contacts:submit` — ContactsForm, сабмит шага 2. (payload: нет)
+
+
+
+

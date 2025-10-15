@@ -1,4 +1,12 @@
 import { IBuyer, TPayment, ValidationMap } from '../../types';
+import { EventEmitter } from '../EventEmitter';
+
+// удобный тип полезной нагрузки события
+export type BuyerChangedPayload = {
+    data: IBuyer;
+    fields: ValidationMap;
+    valid: boolean;
+  };
 
 export class BuyerData implements IBuyer {
     payment: TPayment = '';
@@ -6,8 +14,11 @@ export class BuyerData implements IBuyer {
     email: string = '';
     phone: string = '';
 
+    // новое: публичный эмиттер событий модели
+  readonly events = new EventEmitter();
+
     constructor(data: IBuyer) {
-        this.saveData(data);
+        this.saveData(data); // это вызовет emit
     }
 
     //Проверка каждого поля отдельно
@@ -41,11 +52,13 @@ export class BuyerData implements IBuyer {
         this.address = newData.address;
         this.email = newData.email;
         this.phone = newData.phone;
+        this.emitChanged();
     }
 
     //Обновление одного конкретного поля
     updateField<K extends keyof IBuyer>(field: K, value: IBuyer[K]): void {
         (this as IBuyer)[field] = value;
+        this.emitChanged();
   }
 
     clear(): void {
@@ -54,5 +67,16 @@ export class BuyerData implements IBuyer {
 
         this.email = '';
         this.phone = '';
+        this.emitChanged();
     }
+
+    // внутреннее: единая точка эмита события
+  private emitChanged() {
+    const payload: BuyerChangedPayload = {
+      data: this.getData(),
+      fields: this.validateFields(),
+      valid: this.validate(),
+    };
+    this.events.emit<BuyerChangedPayload>('buyer:changed', payload);
+  }
 }
