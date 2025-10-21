@@ -36,13 +36,21 @@ export class Basket extends Component<BasketData> {
   }
 
   set total(value: number) {
-    if (this.totalElement) this.totalElement.textContent = `${Number(value || 0)} синапсов`;
+    if (this.totalElement) this.totalElement.textContent = `${value} синапсов`;
   }
-
+  
   set empty(value: boolean) {
-    this.checkoutButton.disabled = !!value;
-    if (value) this.items = []; // визуально показываем «Корзина пуста»
+  this.checkoutButton.disabled = !!value;
+  if (value) {
+    this.listElement.replaceChildren();
+    const empty = document.createElement('li');
+    empty.className = 'basket__empty';
+    empty.textContent = 'Корзина пуста';
+    this.listElement.append(empty);
   }
+}
 
-  onCheckout(handler: () => void) { this.onCheckoutHandler = handler ?? (() => {}); }
+onCheckout(handler: () => void) {
+  this.onCheckoutHandler = handler;
+}
 }

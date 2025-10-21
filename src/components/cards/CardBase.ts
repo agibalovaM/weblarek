@@ -44,7 +44,7 @@ export abstract class CardBase<T extends CardBaseData = CardBaseData> extends Co
     }
   }
 
-  set category(value?: string) {
+  set category(value: string) {
     if (!this.categoryElement) return;
 
     // берём из карты или используем «как есть» (fallback)
@@ -59,13 +59,31 @@ export abstract class CardBase<T extends CardBaseData = CardBaseData> extends Co
       this.categoryElement.classList.add(`card__category_${map.mod}`);
     }
   }
-
-  // сеттер может принимать только ОДИН аргумент — заворачиваем src/alt в объект
-  set image(value?: { src?: string; alt?: string }) {
+  
+  set image(value: { src?: string; alt?: string; secondarySrc?: string; fallbackSrc?: string }) {
     const src = value?.src;
     const alt = value?.alt ?? '';
     if (this.imageElement && src) {
-      this.setImage(this.imageElement, src, alt);
+      const img = this.imageElement;
+      // первая попытка — основной src
+      img.onerror = null;
+      if (value?.secondarySrc || value?.fallbackSrc) {
+        img.onerror = () => {
+          // вторая попытка — secondarySrc (например SVG)
+          if (value?.secondarySrc && img.src !== value.secondarySrc) {
+            img.onerror = () => {
+              // третья попытка — fallback
+              if (value?.fallbackSrc && img.src !== value.fallbackSrc) {
+                img.src = value.fallbackSrc!;
+              }
+            };
+            img.src = value.secondarySrc;
+          } else if (value?.fallbackSrc && img.src !== value.fallbackSrc) {
+            img.src = value.fallbackSrc;
+          }
+        };
+      }
+      this.setImage(img, src, alt);
     }
   }
 

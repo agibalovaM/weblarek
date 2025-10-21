@@ -1,16 +1,22 @@
 import { Component } from './base/Component';
 
-type GalleryData = { catalog: HTMLElement[] };
+type GalleryData = {
+  items: HTMLElement[];
+};
 
+/**
+ * Представление каталога, отвечает за отображение списка карточек
+ */
 export class Gallery extends Component<GalleryData> {
-  private catalogElement: HTMLElement;
-
   constructor(container: HTMLElement) {
     super(container);
-    this.catalogElement = container; // <main class="gallery"> сам контейнер — это список
   }
 
-  set catalog(items: HTMLElement[]) {
-    this.catalogElement.replaceChildren(...(items ?? []));
+  set items(value: HTMLElement[]) {
+    if (value?.length) {
+      this.container.replaceChildren(...value);
+      return;
+    }
+    this.container.replaceChildren();
   }
 }

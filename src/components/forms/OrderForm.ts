@@ -7,7 +7,6 @@ export class OrderForm extends FormBase<OrderData> {
   private cardButton: HTMLButtonElement;
   private cashButton: HTMLButtonElement;
   private addressInput: HTMLInputElement;
-  private nextButton: HTMLButtonElement;
 
   private onSelectPaymentHandler: (v: Exclude<Payment, ''>) => void = () => {};
   private onInputAddressHandler: (v: string) => void = () => {};
@@ -17,7 +16,6 @@ export class OrderForm extends FormBase<OrderData> {
     this.cardButton = container.querySelector('button[name="card"]') as HTMLButtonElement;
     this.cashButton = container.querySelector('button[name="cash"]') as HTMLButtonElement;
     this.addressInput = container.querySelector('input[name="address"]') as HTMLInputElement;
-    this.nextButton = container.querySelector('.order__button') as HTMLButtonElement;
 
     this.cardButton?.addEventListener('click', () => this.onSelectPaymentHandler('card'));
     this.cashButton?.addEventListener('click', () => this.onSelectPaymentHandler('cash'));
